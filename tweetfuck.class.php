@@ -11,16 +11,13 @@ class TweetFuck {
 	public $lastResponseInfo = array();
 	public $lastResponseCode = 0;
 	public $lastResponse = '';
-	
-	public $username = '';
-	public $password = '';
-	
-	public $authenticity_token = '';
-	
+		
 	public $cookie_file = '';
 	
-	function __construct() {
-		if (!$this->cookie_file) $this->cookie_file = $_SERVER['PATH_TRANSLATED'] . '.cookies.txt';
+	protected $authenticity_token = '';
+
+	function __construct($cookie_file=null) {
+		if ($cookie_file === null) $this->cookie_file = $_SERVER['PATH_TRANSLATED'] . '.cookies.txt';
 		$context_options = stream_context_get_options(stream_context_get_default());
 		if (@$context_options['socket']['bindto']) $this->curl_opts[CURLOPT_INTERFACE] = $context_options['socket']['bindto'];
 		$this->curl_opts[CURLOPT_SSL_VERIFYPEER] = false;
@@ -34,18 +31,11 @@ class TweetFuck {
 		);
 	}
 	
-	function __wakeup() {
-		return $this->__construct();
-	}
-	
 	public function signin($username_or_email, $password) {
 		if (file_exists($this->cookie_file)) unlink($this->cookie_file);
 		if ($response = $this->http_request('https://twitter.com/sessions',array('session[username_or_email]'=>$username_or_email,'session[password]'=>$password,'remember_me'=>1))) {
 			if (!preg_match('#"postAuthenticityToken":"([^"]+)"#s', $response, $m)) return false;
 			$this->authenticity_token = $m[1];
-			if (!preg_match('#"currentUserScreenName":"([^"]+)"#s', $response, $m)) return false;
-			$this->username = $m[1];
-			$this->password = $password;
 			return true;
 		}
 		return false;
@@ -94,6 +84,4 @@ class TweetFuck {
 		return $this->lastResponse;
 	}
 }
-
-?>
-						
+?>						

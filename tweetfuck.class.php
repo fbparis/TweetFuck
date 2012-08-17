@@ -40,7 +40,7 @@ class TweetFuck {
 	
 	public function signin($username_or_email, $password) {
 		if (file_exists($this->cookie_file)) unlink($this->cookie_file);
-		if ($response = $this->http_request('https://twitter.com/sessions',array('session[username_or_email]'=>$username_or_email,'session[password]'=>$password))) {
+		if ($response = $this->http_request('https://twitter.com/sessions',array('session[username_or_email]'=>$username_or_email,'session[password]'=>$password,'remember_me'=>1))) {
 			if (!preg_match('#"postAuthenticityToken":"([^"]+)"#s', $response, $m)) return false;
 			$this->authenticity_token = $m[1];
 			if (!preg_match('#"currentUserScreenName":"([^"]+)"#s', $response, $m)) return false;

@@ -56,10 +56,9 @@ class TweetFuck {
 		}
 		switch ($method) {
 			case 'GET':
-				$response = $this->http_request($url . ($parameters ? '?' . http_build_query($parameters) : ''), null, true);
+				$response = $this->http_request($url . (@count($parameters) ? (strpos($url, '?') === false ? '?' : '&') . http_build_query($parameters) : ''), null, true);
 				break;
 			case 'POST':
-				$parameters['post_authenticity_token'] = $this->authenticity_token;
 				$response = $this->http_request($url, $parameters, true);
 				break;
 			default:
@@ -72,7 +71,7 @@ class TweetFuck {
 		$ch = curl_init($url);
 		curl_setopt_array($ch, $this->curl_opts);
 		if ($in_api) curl_setopt_array($ch, $this->curl_opts_api);
-		if ($parameters) {
+		if ($parameters !== null) {
 			curl_setopt($ch, CURLOPT_POST, true);
 			curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($parameters));
 		}

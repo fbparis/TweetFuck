@@ -17,10 +17,10 @@ class TweetFuck {
 	
 	public $authenticity_token = '';
 	
-	protected $cookie_file = '';
+	public $cookie_file = '';
 	
 	function __construct() {
-		$this->cookie_file = $_SERVER['PATH_TRANSLATED'] . '.cookies.txt';
+		if (!$this->cookie_file) $this->cookie_file = $_SERVER['PATH_TRANSLATED'] . '.cookies.txt';
 		$context_options = stream_context_get_options(stream_context_get_default());
 		if (@$context_options['socket']['bindto']) $this->curl_opts[CURLOPT_INTERFACE] = $context_options['socket']['bindto'];
 		$this->curl_opts[CURLOPT_SSL_VERIFYPEER] = false;

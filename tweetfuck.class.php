@@ -1,0 +1,99 @@
+<?php
+/*
+ * Twitter API without OAuth (rate limit = 1000 reqs/hour)
+ */
+class TweetFuck {
+	public $host = 'https://api.twitter.com/1/';
+	public $curl_opts = array();
+	public $curl_opts_api = array();
+	
+	public $lastUrl = '';
+	public $lastResponseInfo = array();
+	public $lastResponseCode = 0;
+	public $lastResponse = '';
+	
+	public $username = '';
+	public $password = '';
+	
+	public $authenticity_token = '';
+	
+	protected $cookie_file = '';
+	
+	function __construct() {
+		$this->cookie_file = $_SERVER['PATH_TRANSLATED'] . '.cookies.txt';
+		$context_options = stream_context_get_options(stream_context_get_default());
+		if (@$context_options['socket']['bindto']) $this->curl_opts[CURLOPT_INTERFACE] = $context_options['socket']['bindto'];
+		$this->curl_opts[CURLOPT_SSL_VERIFYPEER] = false;
+		$this->curl_opts[CURLOPT_RETURNTRANSFER] = true;
+		$this->curl_opts[CURLOPT_COOKIEFILE] = $this->cookie_file;
+		$this->curl_opts[CURLOPT_COOKIEJAR] = $this->cookie_file;
+		$this->curl_opts[CURLOPT_FOLLOWLOCATION] = true;
+		$this->curl_opts[CURLOPT_MAXREDIRS] = 1;
+		$this->curl_opts_api[CURLOPT_HTTPHEADER] = array(
+			'X-PHX: true'
+		);
+	}
+	
+	function __wakeup() {
+		return $this->__construct();
+	}
+	
+	public function signin($username_or_email, $password) {
+		if (file_exists($this->cookie_file)) unlink($this->cookie_file);
+		if ($response = $this->http_request('https://twitter.com/sessions',array('session[username_or_email]'=>$username_or_email,'session[password]'=>$password))) {
+			if (!preg_match('#"postAuthenticityToken":"([^"]+)"#s', $response, $m)) return false;
+			$this->authenticity_token = $m[1];
+			if (!preg_match('#"currentUserScreenName":"([^"]+)"#s', $response, $m)) return false;
+			$this->username = $m[1];
+			$this->password = $password;
+			return true;
+		}
+		return false;
+	}
+	
+	public function get($url, $parameters=array()) {
+		return $this->api_call($url, 'GET', $parameters);
+	}
+
+	public function post($url, $parameters=array()) {
+		$parameters['post_authenticity_token'] = $this->authenticity_token;
+		return $this->api_call($url, 'POST', $parameters);
+	}
+	
+	protected function api_call($url, $method, $parameters) {
+		if (!preg_match('#^https?://#si',$url)) {
+			$url = "{$this->host}{$url}.json";
+		}
+		switch ($method) {
+			case 'GET':
+				$response = $this->http_request($url . ($parameters ? '?' . http_build_query($parameters) : ''), null, true);
+				break;
+			case 'POST':
+				$parameters['post_authenticity_token'] = $this->authenticity_token;
+				$response = $this->http_request($url, $parameters, true);
+				break;
+			default:
+				return false;
+		}
+		return $this->lastResponseCode == 200 ? json_decode($response) : false;
+	}
+	
+	protected function http_request($url, $parameters=null, $in_api=false) {
+		$ch = curl_init($url);
+		curl_setopt_array($ch, $this->curl_opts);
+		if ($in_api) curl_setopt_array($ch, $this->curl_opts_api);
+		if ($parameters) {
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($parameters));
+		}
+		$this->lastResponse = curl_exec($ch);
+		$this->lastResponseInfo = curl_getinfo($ch);
+		$this->lastResponseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$this->lastUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+		curl_close($ch);
+		return $this->lastResponse;
+	}
+}
+
+?>
+						

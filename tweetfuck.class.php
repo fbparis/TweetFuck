@@ -6,15 +6,12 @@ class TweetFuck {
 	public $host = 'https://api.twitter.com/1/';
 	public $curl_opts = array();
 	public $curl_opts_api = array();
-	
 	public $lastUrl = '';
 	public $lastResponseInfo = array();
 	public $lastResponseCode = 0;
-	public $lastResponse = '';
-		
+	public $lastResponse = '';	
 	public $cookie_file = '';
-	
-	protected $authenticity_token = '';
+	public $authenticity_token = '';
 
 	function __construct($cookie_file=null) {
 		if ($cookie_file === null) $this->cookie_file = $_SERVER['PATH_TRANSLATED'] . '.cookies.txt';

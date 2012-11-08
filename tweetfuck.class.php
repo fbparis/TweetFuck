@@ -31,7 +31,7 @@ class TweetFuck {
 	public function signin($username_or_email, $password) {
 		if (file_exists($this->cookie_file)) unlink($this->cookie_file);
 		if (!$response = $this->http_request('http://twitter.com/')) return false;
-		$this->authenticity_token = preg_match('#<input type="hidden" value="([^"]*)" name="authenticity_token">#s', $response, $m) ? $m[1] : '';
+		if (!$this->authenticity_token = preg_match('#<input type="hidden" value="([^"]*)" name="authenticity_token">#s', $response, $m) ? $m[1] : '') return false;
 		if ($response = $this->http_request('https://twitter.com/sessions',array('session[username_or_email]'=>$username_or_email,'session[password]'=>$password,'authenticity_token'=>$this->authenticity_token,'redirect_after_login'=>'/','remember_me'=>1))) {
 			if ('https://twitter.com/' != $this->lastUrl) return false;
 			return true;

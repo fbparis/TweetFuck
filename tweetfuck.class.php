@@ -14,7 +14,7 @@ class TweetFuck {
 	public $authenticity_token = '';
 
 	function __construct($cookie_file=null) {
-		if ($cookie_file === null) $this->cookie_file = $_SERVER['PATH_TRANSLATED'] . '.cookies.txt';
+		$this->cookie_file = !$cookie_file ? $_SERVER['PATH_TRANSLATED'] . '.cookies.txt' : $cookie_file;
 		$context_options = stream_context_get_options(stream_context_get_default());
 		if (@$context_options['socket']['bindto']) $this->curl_opts[CURLOPT_INTERFACE] = $context_options['socket']['bindto'];
 		$this->curl_opts[CURLOPT_SSL_VERIFYPEER] = false;

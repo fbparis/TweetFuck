@@ -1,6 +1,8 @@
 TweetFuck
 =========
 
+**THIS CLASS IS DEPRECATED. WORKING ON A NEW ONE...**
+
 Use Twitter API without OAuth and without restrictions.
 
 Basic example:

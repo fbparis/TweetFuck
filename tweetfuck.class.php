@@ -80,4 +80,4 @@ class TweetFuck {
 		return $this->lastResponse;
 	}
 }
-?>						
+?>
